@@ -7,5 +7,5 @@ You can install a module by dropping it in the `Modules` folder of your Simply L
 
 ## Modules
 
-_None yet_
+- [Twitch chat](https://github.com/Simply-Love/Modules/raw/main/twitch.lua)
 
