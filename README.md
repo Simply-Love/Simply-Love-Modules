@@ -7,5 +7,9 @@ You can install a module by dropping it in the `Modules` folder of your Simply L
 
 ## Modules
 
-- [Twitch chat](https://github.com/Simply-Love/Modules/raw/main/twitch.lua)
+- [Screen Detector](https://github.com/Simply-Love/Modules/raw/main/ScreenDetector.lua)
+- [Write Song Info](https://github.com/Simply-Love/Modules/raw/main/WriteSongInfo.lua)
+- [Twitch Chat](https://github.com/Simply-Love/Modules/raw/main/TwitchChat.lua)*
+
+\* [ITGmania](https://www.itgmania.com) Exclusive
 
