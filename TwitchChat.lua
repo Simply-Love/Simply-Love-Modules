@@ -538,7 +538,7 @@ t.ScreenGameplay = ChatActor{
 			if noteFieldIsCentered then
 				local width = (_screen.w - GetNotefieldWidth()) / 2 - 20
 				local x = _screen.w - width - 10
-				if mods.DataVisualizations ~= "None" then
+				if mods.DataVisualizations ~= "None" or ThemePrefs.Get("EnableTournamentMode") then
 					x = 10
 				end
 				self:xy(x, 90)
@@ -561,7 +561,7 @@ t.ScreenGameplay = ChatActor{
 			if noteFieldIsCentered then
 				local width = (_screen.w - GetNotefieldWidth()) / 2 - 20
 				local x = 10
-				if mods.DataVisualizations ~= "None" then
+				if mods.DataVisualizations ~= "None" or ThemePrefs.Get("EnableTournamentMode") then
 					x = _screen.w - width - 10
 				end
 				self:xy(x, 90)
