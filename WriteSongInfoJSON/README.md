@@ -5,6 +5,16 @@ Included is an example HTML file which can be used with OBS to create a clean on
 
 ![Preview of the Browser Source](<Screenshot 2025-05-16 23-25-47.png>)
 
+How to use this module, and the example browser source:
+- Place `WriteSongInfoJSON.lua` in the `/Themes/Simply Love/Modules` folder.
+- Place `Example-OBSBrowserSource.html` in the `/Save` folder.
+- Add a Browser Source in OBS:
+   - Check the Local File box.
+   - Browse to and select the Example-OBSBrowserSource.html file.
+   - Set the width to 760.
+   - Set the height to 170.
+- You can resize and move this source anywhere in the scene.
+
 The JSON object output looks like this currently:
 ```
 {
