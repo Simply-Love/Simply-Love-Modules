@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimplyLove Example JSON OBS Browser Source</title>
+    <style>
+      :root {
+        --text-primary: #ffdc64;
+        --text-secondary: #eee;
+        --text-tertiary: #c2c2c2;
+        --text-step-artist: #b2ffb2;
+        --text-chart-desc: #b0c4de;
+        --bg-card: rgba(30, 30, 30, 0.92);
+        --bg-body: rgba(20, 20, 20, 0.7);
+        --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+        --shadow-banner: 0 2px 8px rgba(0, 0, 0, 0.3);
+        --shadow-difficulty: 0 1px 4px rgba(0, 0, 0, 0.2);
+        --border-radius: 8px;
+        --spacing-standard: 8px;
+      }
+
+      body {
+        padding: 0;
+        margin: 22px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: var(--bg-body);
+      }
+      
+      .obs-card {
+        background-color: var(--bg-card);
+        display: grid;
+        grid-template-columns: 256px 1fr;
+        align-items: center;
+        width: 700px;
+        border-radius: var(--border-radius);
+        padding: var(--spacing-standard);
+        box-shadow: var(--shadow-card);
+        gap: 16px;
+        min-width: 0;
+        height: 100px;
+      }
+        
+      .song-banner {
+        position: relative;
+        object-fit: cover;
+        width: 100%;
+        height: 100px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-banner);
+        z-index: 1;
+        transition: opacity 0.3s ease;
+      }
+        
+      .meta-grid {
+        grid-area: 1 / 2 / 2 / 3;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        grid-template-rows: repeat(4, 1fr);
+        gap: 2px;
+        min-width: 0;
+        width: 100%;
+        align-items: center;
+        height: 100px;
+      }
+        
+      .song-title { grid-area: 1 / 1; }
+      .difficulty { grid-area: 1 / 2; justify-self: end; }
+      .song-artist { grid-area: 2 / 1; }
+      .step-count { grid-area: 2 / 2; justify-self: end; }
+      .pack-name { grid-area: 3 / 1; }
+      .step-artist { grid-area: 3 / 2; justify-self: end; }
+      .song-length { grid-area: 4 / 1; }
+      .chart-desc { grid-area: 4 / 2; justify-self: end; }
+      
+      /* Text truncation utility class */
+      .truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        max-width: 100%;
+        display: block;
+      }
+      
+      .song-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--text-primary);
+        text-shadow: 1px 1px 2px #000;
+        margin-bottom: 2px;
+      }
+      
+      .song-artist {
+        font-size: 1em;
+        color: var(--text-secondary);
+      }
+      
+      .pack-name,
+      .song-length {
+        font-size: 0.95em;
+        color: var(--text-tertiary);
+        margin-top: 2px;
+      }
+      
+      .difficulty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #000;
+        background: var(--hard);
+        border-radius: 6px;
+        padding: 0 6px;
+        font-size: 1.1em;
+        letter-spacing: 1px;
+        box-shadow: var(--shadow-difficulty);
+        height: 28px;
+        min-width: 2.5em;
+        line-height: 1em;
+      }
+      
+      .step-count {
+        font-size: 1em;
+        color: #fff;
+      }
+      
+      .step-artist {
+        font-size: 0.95em;
+        color: var(--text-step-artist);
+      }
+      
+      .chart-desc {
+        font-size: 0.93em;
+        color: var(--text-chart-desc);
+        margin-top: 2px;
+      }
+      
+      .banner-placeholder {
+        grid-area: 1 / 1;
+        width: 256px;
+        height: 100px;
+        border-radius: var(--border-radius);
+        background: #444;
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+        position: relative;
+        overflow: hidden;
+      }
+        
+      @keyframes shimmer {
+        0% { background-position: -200px 0; }
+        100% { background-position: 200px 0; }
+      }
+      
+      .banner-placeholder::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #444 25%, #555 50%, #444 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="obs-card">
+      <div class="banner-placeholder">
+        <img class="song-banner" src="" alt="Song Banner" style="opacity:0;">
+      </div>
+      <div class="meta-grid">
+        <div class="song-title truncate">Song Title</div>
+        <div class="difficulty">??</div>
+        <div class="song-artist truncate">Song Artist</div>
+        <div class="step-count truncate">Steps: ???</div>
+        <div class="pack-name truncate">Pack Name</div>
+        <div class="step-artist truncate">Chart By: Step Artist</div>
+        <div class="song-length">0:00</div>
+        <div class="chart-desc truncate">Chart Description</div>
+      </div>
+    </div>
+
+    <script>
+      // Cache DOM elements for better performance
+      const elements = {
+        songBanner: null,
+        songTitle: null,
+        songArtist: null,
+        packName: null,
+        songLength: null,
+        difficulty: null,
+        stepCount: null,
+        chartDesc: null,
+        stepArtist: null
+      };
+
+      // Initialize element references
+      const initElements = () => {
+        elements.songBanner = document.querySelector('.song-banner');
+        elements.songTitle = document.querySelector('.song-title');
+        elements.songArtist = document.querySelector('.song-artist');
+        elements.packName = document.querySelector('.pack-name');
+        elements.songLength = document.querySelector('.song-length');
+        elements.difficulty = document.querySelector('.difficulty');
+        elements.stepCount = document.querySelector('.step-count');
+        elements.chartDesc = document.querySelector('.chart-desc');
+        elements.stepArtist = document.querySelector('.step-artist');
+        
+        // Set up image load event
+        elements.songBanner.addEventListener('load', () => {
+          elements.songBanner.style.opacity = 1;
+        });
+      };
+
+      // Convert difficulty to shorthand notation
+      const getShortDifficulty = (difficulty, mode, blockRating) => {
+        let shortHand = mode === "double" ? "D" : "S";
+        
+        switch (difficulty) {
+          case "Expert":
+            shortHand += "X";
+            break;
+          case "Hard":
+            shortHand += "H";
+            break;
+          case "Medium":
+            shortHand += "M";
+            break;
+          case "Easy":
+            shortHand += "E";
+            break;
+          case "Beginner":
+            shortHand += "B";
+            break;
+          default:
+            shortHand += difficulty.substring(0, 1);
+        }
+        
+        return shortHand + blockRating;
+      };
+
+      // Fetch song data and update UI
+      const fetchSongData = () => {
+        fetch('SongInfo.json')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Update UI with fetched data
+            elements.songBanner.src = "../" + data.banner;
+            elements.songTitle.textContent = data.title.replace(/(^\s*(\[[^\]]*\]\s*)*)|[\[\(<](?:Expert|Hard|Medium|Easy|Beginner)[\]\)>]/g, '').trim();
+            elements.songArtist.textContent = data.artist;
+            elements.packName.textContent = data.pack;
+            elements.songLength.textContent = data.length;
+            elements.difficulty.textContent = getShortDifficulty(
+              data.difficulty, 
+              data.style, 
+              data.blockRating
+            );
+            
+            // Set difficulty color
+            const color = data.diffColor;
+            const [r, g, b, a] = [
+              Math.round(color[0] * 255),
+              Math.round(color[1] * 255),
+              Math.round(color[2] * 255),
+              color[3]
+            ];
+            elements.difficulty.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+            
+            // Update remaining elements
+            elements.stepCount.textContent = `Steps: ${data.stepCount}`;
+            elements.chartDesc.textContent = data.stepDesc;
+            elements.stepArtist.textContent = `Chart by: ${data.stepArtist || "Unknown"}`;
+          })
+          .catch(error => {
+            console.error('Error fetching song data:', error);
+          });
+      };
+
+      // Initialize when DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        initElements();
+        fetchSongData(); // Initial fetch
+        
+        // Update data every second (can be adjusted for performance)
+        setInterval(fetchSongData, 1000);
+      });
+    </script>
+  </body>
+</html>
